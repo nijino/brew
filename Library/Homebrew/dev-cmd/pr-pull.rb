@@ -35,11 +35,6 @@ module Homebrew
         switch "--autosquash",
                description: "Automatically reformat and reword commits in the pull request to our " \
                             "preferred format."
-        switch "--no-autosquash",
-               description: "Skip automatically reformatting and rewording commits in the pull request to our " \
-                            "preferred format.",
-               disable:     true, # odisabled: remove this switch with 4.3.0
-               hidden:      true
         switch "--branch-okay",
                description: "Do not warn if pulling to a branch besides the repository default (useful for testing)."
         switch "--resolve",
@@ -100,7 +95,7 @@ module Homebrew
           _, user, repo, pr = *url_match
           odie "Not a GitHub pull request: #{arg}" unless pr
 
-          git_repo = tap.git_repo
+          git_repo = tap.git_repository
           if !git_repo.default_origin_branch? && !args.branch_okay? && !args.no_commit? && !args.no_cherry_pick?
             origin_branch_name = git_repo.origin_branch_name
             opoo "Current branch is #{git_repo.branch_name}: do you need to pull inside #{origin_branch_name}?"
@@ -175,7 +170,7 @@ module Homebrew
               safe_system HOMEBREW_BREW_FILE, *upload_args
             end
           ensure
-            if args.retain_bottle_dir? && ENV["GITHUB_ACTIONS"]
+            if args.retain_bottle_dir? && GitHub::Actions.env_set?
               ohai "Bottle files retained at:", dir
               File.open(ENV.fetch("GITHUB_OUTPUT"), "a") do |f|
                 f.puts "bottle_path=#{dir}"
@@ -346,7 +341,7 @@ module Homebrew
 
       # TODO: fix test in `test/dev-cmd/pr-pull_spec.rb` and assume `cherry_picked: false`.
       def autosquash!(original_commit, tap:, reason: "", verbose: false, resolve: false, cherry_picked: true)
-        git_repo = tap.git_repo
+        git_repo = tap.git_repository
         original_head = git_repo.head_ref
 
         commits = Utils.safe_popen_read("git", "-C", tap.path, "rev-list",

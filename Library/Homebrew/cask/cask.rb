@@ -352,7 +352,6 @@ module Cask
         "homepage"             => homepage,
         "url"                  => url,
         "url_specs"            => url_specs,
-        "appcast"              => appcast,
         "version"              => version,
         "installed"            => installed_version,
         "installed_time"       => install_time&.to_i,
@@ -441,6 +440,9 @@ module Cask
           MacOSVersion::SYMBOLS.keys.product(OnSystem::ARCH_OPTIONS).each do |os, arch|
             bottle_tag = ::Utils::Bottles::Tag.new(system: os, arch:)
             next unless bottle_tag.valid_combination?
+            next if depends_on.macos &&
+                    !@dsl.depends_on_set_in_block? &&
+                    !depends_on.macos.allows?(bottle_tag.to_macos_version)
 
             Homebrew::SimulateSystem.with(os:, arch:) do
               refresh

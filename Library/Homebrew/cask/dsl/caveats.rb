@@ -20,7 +20,7 @@ module Cask
       attr_predicate :discontinued?
 
       def initialize(*args)
-        super(*args)
+        super
         @built_in_caveats = {}
         @custom_caveats = []
         @discontinued = false
@@ -164,7 +164,7 @@ module Cask
       end
 
       caveat :discontinued do
-        # odeprecated "`caveats :discontinued`", "`deprecate!`"
+        odeprecated "`caveats :discontinued`", "`deprecate!`"
         @discontinued = true
         <<~EOS
           #{@cask} has been officially discontinued upstream.
